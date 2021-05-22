@@ -10,3 +10,4 @@
 
 http://localhost:8080/card?accountId=1
 http://localhost:8080/account/balance?accountId=1
+http://localhost:8080/transaction

@@ -1,15 +1,12 @@
 package ru.sber.cards.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import ru.sber.cards.controlller.BaseServer;
 import ru.sber.cards.dao.*;
-import ru.sber.cards.dao.models.Card;
 import ru.sber.cards.dao.models.CardResponse;
-import ru.sber.cards.dao.models.Transaction;
 import ru.sber.cards.utilities.CreateUserException;
 
 import java.io.BufferedReader;
@@ -82,7 +79,6 @@ public class CardServiceImpTest{
         }
         Assertions.assertFalse(cardResponses.contains(cardResponses1));
     }
-
     @Test
     public void linkCard() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
