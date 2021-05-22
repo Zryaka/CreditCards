@@ -22,19 +22,28 @@ public class LoginHandler implements HttpHandler {
     private final String success = "Login!";
     private final String error = "Not login!";
     private final String errorGet = "Get method not found for this context";
+    private final String errorPost = "POST method not found for this context";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (exchange.getRequestMethod().equals("POST")) {
             LoginRequest loginRequest = objectMapper.readValue(exchange.getRequestBody(),
                     LoginRequest.class);
-            exchange.sendResponseHeaders(200, success.length());
             try {
-                userService.login(loginRequest);
-                try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(success.getBytes());
+                if (exchange.getRequestURI().getPath().equals("/login")) {
+                    exchange.sendResponseHeaders(200, success.length());
+                    userService.login(loginRequest);
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(success.getBytes());
+                    }
+                } else {
+                    exchange.sendResponseHeaders(200, errorPost.length());
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(errorPost.getBytes());
+                    }
                 }
             } catch (Exception e) {
+                exchange.sendResponseHeaders(200, error.length());
                 try (OutputStream outputStream = exchange.getResponseBody()) {
                     outputStream.write(error.getBytes());
                 }

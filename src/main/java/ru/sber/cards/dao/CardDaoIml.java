@@ -2,6 +2,7 @@ package ru.sber.cards.dao;
 
 import ru.sber.cards.dao.models.Card;
 import ru.sber.cards.dao.models.CardResponse;
+import ru.sber.cards.utilities.CreateUserException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,7 +16,6 @@ public class CardDaoIml implements CardDao {
     private static final String CHEK_ACCOUNT = "SELECT SCORE FROM ACCOUNT WHERE ID_USER = ?;";
     private static final String CREATE_NEW_CARD = "INSERT INTO CARD(ID,NUMBER,ID_ACCOUNT) VALUES(default,?,?);";
     private static final String LINK_CARD = "SELECT ID, NUMBER FROM CARD WHERE ID_ACCOUNT = ?;";
-    private List<CardResponse> cards = new ArrayList<>();
 
     @Override
     public boolean chekAccountCreate(int UserId) {
@@ -23,11 +23,14 @@ public class CardDaoIml implements CardDao {
              PreparedStatement preparedStatement = connection.prepareStatement(CHEK_ACCOUNT)) {
             preparedStatement.setInt(1, UserId);
             ResultSet resultSet = preparedStatement.executeQuery();
-            return resultSet.next();
+            if(resultSet.next()){
+                return true;
+            }else {
+                throw new CreateUserException("Для создания карты требуется завести счет");
+            }
         } catch (SQLException e) {
-            System.out.println("Для создания карты требуется завести счет");
+            throw new CreateUserException("Для создания карты требуется завести счет");
         }
-        return false;
     }
 
     @Override
@@ -39,12 +42,13 @@ public class CardDaoIml implements CardDao {
 
             preparedStatement.execute();
         } catch (SQLException e) {
-            System.out.println("Карта не создана!");
+            throw new CreateUserException("Карта не создана!");
         }
     }
 
     @Override
     public List<CardResponse> getListCard(int accountId) {
+        List<CardResponse> cards = new ArrayList<>();
         try (Connection connection = H2DataBase.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(LINK_CARD)) {
             preparedStatement.setInt(1, accountId);

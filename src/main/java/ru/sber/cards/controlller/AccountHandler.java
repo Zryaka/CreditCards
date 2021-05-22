@@ -1,17 +1,13 @@
 package ru.sber.cards.controlller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import ru.sber.cards.dao.models.AccountRequest;
-import ru.sber.cards.dao.models.CardResponse;
 import ru.sber.cards.service.AccountService;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 
 public class AccountHandler implements HttpHandler {
 
@@ -25,6 +21,8 @@ public class AccountHandler implements HttpHandler {
 
     private final String success = "Executed!";
     private final String error = "Error account!";
+    private final String errorGet = "Get method not found for this context";
+    private final String errorPost = "POST method not found for this context";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -35,19 +33,31 @@ public class AccountHandler implements HttpHandler {
             try {
                 if (exchange.getRequestURI().getPath().equals("/account/create")) {
                     accountService.createAccount(accountRequest);
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(success.getBytes());
+                    }
                 } else if (exchange.getRequestURI().getPath().equals("/account/add")) {
                     accountService.addMoney(accountRequest);
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(success.getBytes());
+                    }
                 } else if (exchange.getRequestURI().getPath().equals("/account/withdraw")) {
                     accountService.takeMoney(accountRequest);
-                }
-                try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(success.getBytes());
+
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(success.getBytes());
+                    }
+                } else {
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(errorPost.getBytes());
+                    }
                 }
             } catch (Exception e) {
                 try (OutputStream outputStream = exchange.getResponseBody()) {
                     outputStream.write(error.getBytes());
                 }
             }
+
         } else if (exchange.getRequestMethod().equals("GET")) {
             if (exchange.getRequestURI().getPath().equals("/account/balance")) {
                 int accountId = Integer.parseInt(exchange
@@ -65,6 +75,10 @@ public class AccountHandler implements HttpHandler {
                     try (OutputStream outputStream = exchange.getResponseBody()) {
                         outputStream.write(error.getBytes());
                     }
+                }
+            } else {
+                try (OutputStream outputStream = exchange.getResponseBody()) {
+                    outputStream.write(errorGet.getBytes());
                 }
             }
         }

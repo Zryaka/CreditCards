@@ -2,11 +2,14 @@ package ru.sber.cards.dao;
 
 import ru.sber.cards.dao.models.Account;
 import ru.sber.cards.dao.models.Transaction;
+import ru.sber.cards.utilities.CreateUserException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AccountDaoImpl implements AccountDao {
 
@@ -15,8 +18,8 @@ public class AccountDaoImpl implements AccountDao {
     private static final String CHANGE_BALANCE = "UPDATE ACCOUNT SET BALANCE = ? WHERE ID = ?;";
     private static final String GET_BALANCE_ACCOUNT = "SELECT BALANCE FROM ACCOUNT WHERE SCORE = ?;";
     private static final String GET_ID_ACCOUNT = "SELECT ID FROM ACCOUNT WHERE SCORE = ?;";
-    private static final String SAVE_TRANSACTION = "INSERT INTO COUNTERPARTY(ID,FROMUSER,TOUSER,SUM) VALUES (default,?,?,?);";
-
+    private static final String SAVE_TRANSACTION = "INSERT INTO COUNTERPARTY(ID,ID_USER_FROM,OPERATION,SUM) VALUES (default,?,?,?);";
+    private static final String LINC_TRANSACTION = "SELECT * FROM COUNTERPARTY;";
     @Override
     public void saveAccount(Account account) {
         try (Connection connection = H2DataBase.getConnection();
@@ -27,7 +30,7 @@ public class AccountDaoImpl implements AccountDao {
 
             preparedStatement.execute();
         } catch (SQLException e) {
-            System.out.println("Ошибка создания нового счета");
+            throw new CreateUserException("Ошибка создания нового счета");
         }
 
     }
@@ -43,7 +46,7 @@ public class AccountDaoImpl implements AccountDao {
 
              balance = resultSet.getInt("balance");
         } catch (SQLException e) {
-            System.out.println("Нет доступа к балансу счета");
+            throw new CreateUserException("Нет доступа к балансу счета");
         }
         return balance;
     }
@@ -57,7 +60,7 @@ public class AccountDaoImpl implements AccountDao {
 
             preparedStatement.execute();
         } catch (SQLException e) {
-            System.out.println("Денежные средства не зачислены");
+            throw new CreateUserException("Денежные средства не зачислены");
         }
     }
 
@@ -72,7 +75,7 @@ public class AccountDaoImpl implements AccountDao {
 
             balance = resultSet.getInt("BALANCE");
         } catch (SQLException e) {
-            System.out.println("Нет доступа к счету");
+            throw new CreateUserException("Нет доступа к счету");
         }
         return balance;
     }
@@ -88,7 +91,7 @@ public class AccountDaoImpl implements AccountDao {
 
             idAccount = resultSet.getInt("ID");
         } catch (SQLException e) {
-            System.out.println("Неудалось получить ID счета");
+            throw new CreateUserException("Неудалось получить ID счета");
         }
         return idAccount;
     }
@@ -97,14 +100,35 @@ public class AccountDaoImpl implements AccountDao {
     public void saveTransaction(Transaction transaction) {
         try (Connection connection = H2DataBase.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(SAVE_TRANSACTION)) {
-            preparedStatement.setString(1, transaction.getIdUserFrom());
-            preparedStatement.setString(2, transaction.getIdUserTo());
+            preparedStatement.setInt(1, transaction.getIdUserFrom());
+            preparedStatement.setString(2, transaction.getOperation());
             preparedStatement.setInt(3, transaction.getMoney());
 
             preparedStatement.execute();
         } catch (SQLException e) {
-            System.out.println("Ошибка создания нового счета");
+            throw new CreateUserException("Ошибка создания нового счета");
         }
+    }
+
+    @Override
+    public List<Transaction> getTransactoinFromBD() {
+        List<Transaction> transactions = new ArrayList<>();
+        try (Connection connection = H2DataBase.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(LINC_TRANSACTION)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                Transaction transaction = new Transaction();
+                transaction.setId(resultSet.getInt("ID"));
+                transaction.setIdUserFrom(resultSet.getInt("ID_USER_FROM"));
+                transaction.setOperation(resultSet.getString("OPERATION"));
+                transaction.setMoney(resultSet.getInt("SUM"));
+
+                transactions.add(transaction);
+            }
+        } catch (SQLException e) {
+            System.out.println("Неудается получить доступ к списку карт");
+        }
+        return transactions;
     }
 
 

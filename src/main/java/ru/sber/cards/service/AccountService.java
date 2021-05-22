@@ -1,7 +1,10 @@
 package ru.sber.cards.service;
 
 import ru.sber.cards.dao.models.AccountRequest;
+import ru.sber.cards.dao.models.Transaction;
 import ru.sber.cards.dao.models.TransactionRequest;
+
+import java.util.List;
 
 public interface AccountService {
      /**
@@ -23,4 +26,8 @@ public interface AccountService {
      * Перевод денег на другой счет
      */
     void transactionToAccount(TransactionRequest transactionRequest);
+    /**
+     *Показывает все переводы совершенные пользователями
+     */
+    List<Transaction> linkTransaction();
 }

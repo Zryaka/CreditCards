@@ -9,6 +9,7 @@ import ru.sber.cards.dao.models.TransactionRequest;
 import ru.sber.cards.utilities.RandomAccount;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class AccountServiceImpl implements AccountService {
 
@@ -35,16 +36,24 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void addMoney(AccountRequest accountRequest) {
+        Transaction transaction = new Transaction();
         Account account = new Account();
+        String operation = "Add money";
         account.setId(accountRequest.getAccountId());
         account.setBalance(accountDao.getUserBalance(accountRequest.getAccountId()) + accountRequest.getBalance());
-
         accountDao.changeMoneyInAccount(account);
+
+        transaction.setIdUserFrom(userDao.getUserIdFromAccount(accountRequest.getAccountId()));
+        transaction.setOperation(operation);
+        transaction.setMoney(accountRequest.getBalance());
+        accountDao.saveTransaction(transaction);
     }
 
     @Override
     public void takeMoney(AccountRequest accountRequest) {
         Account account = new Account();
+        Transaction transaction = new Transaction();
+        String operation = "Withdrew money";
         try {
             int getBalance = accountDao.getUserBalance(accountRequest.getAccountId());
             if ((getBalance - accountRequest.getBalance()) < 0) {
@@ -53,6 +62,12 @@ public class AccountServiceImpl implements AccountService {
                 account.setId(accountRequest.getAccountId());
                 account.setBalance(getBalance - accountRequest.getBalance());
                 accountDao.changeMoneyInAccount(account);
+
+                transaction.setIdUserFrom(userDao.getUserIdFromAccount(accountRequest.getAccountId()));
+                transaction.setOperation(operation);
+                transaction.setMoney(accountRequest.getBalance());
+                accountDao.saveTransaction(transaction);
+
             }
         } catch (SQLException e) {
             System.out.println("Невозможно снять деньги");
@@ -84,14 +99,20 @@ public class AccountServiceImpl implements AccountService {
                 account1.setBalance(takeAccountBalance + transactionRequest.getSumMoney());
                 accountDao.changeMoneyInAccount(account1);
 
-                transaction.setIdUserFrom(userDao.getUserInfo(transactionRequest.getAccountIdUser1()));
-                transaction.setIdUserTo(userDao.getUserInfo(takeIdAccount));
+                transaction.setIdUserFrom(userDao.getUserIdFromAccount(transactionRequest.getAccountIdUser1()));
+                transaction.setOperation(userDao.getUserInfo(takeIdAccount));
                 transaction.setMoney(transactionRequest.getSumMoney());
                 accountDao.saveTransaction(transaction);
             }
         } catch (SQLException e) {
             System.out.println("Невозможно снять деньги");
         }
+    }
+
+    @Override
+    public List<Transaction> linkTransaction() {
+        List<Transaction> transactions = accountDao.getTransactoinFromBD();
+        return transactions;
     }
 
 

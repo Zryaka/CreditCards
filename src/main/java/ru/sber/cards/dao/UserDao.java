@@ -2,6 +2,9 @@ package ru.sber.cards.dao;
 
 import ru.sber.cards.dao.models.LoginRequest;
 import ru.sber.cards.dao.models.User;
+import ru.sber.cards.utilities.CreateUserException;
+
+import java.sql.SQLException;
 
 public interface UserDao {
     /**
@@ -11,7 +14,7 @@ public interface UserDao {
     /**
      * Проверка пароля
      */
-     boolean loginChek(LoginRequest loginRequest);
+     boolean loginChek(LoginRequest loginRequest) throws CreateUserException;
      /**
       * Если проверка прошла удачно то переставляем переменную в БД на True
       * Пользователь залогинен
@@ -27,5 +30,9 @@ public interface UserDao {
        * возвращает объект в виде строки
        */
       String getUserInfo(int accountId);
+      /**
+       * Метод: который возвращает ID пользователя по ID счета
+       */
+      int getUserIdFromAccount(int idAccount);
 
 }

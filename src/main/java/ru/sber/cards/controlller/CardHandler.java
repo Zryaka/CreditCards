@@ -25,17 +25,26 @@ public class CardHandler implements HttpHandler {
 
     private final String success = "Card created!";
     private final String error = "Card not created!";
+    private final String errorGet = "Get method not found for this context";
+    private final String errorPost = "POST method not found for this context";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (exchange.getRequestMethod().equals("POST")) {
             CardRequest cardRequest = objectMapper.readValue(exchange.getRequestBody(),
                     CardRequest.class);
-            exchange.sendResponseHeaders(200, success.length());
             try {
-                cardService.createCard(cardRequest);
-                try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(success.getBytes());
+                if (exchange.getRequestURI().getPath().equals("/card")) {
+                    exchange.sendResponseHeaders(200, success.length());
+                    cardService.createCard(cardRequest);
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(success.getBytes());
+                    }
+                } else {
+                    exchange.sendResponseHeaders(200, errorPost.length());
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(errorPost.getBytes());
+                    }
                 }
             } catch (Exception e) {
                 try (OutputStream outputStream = exchange.getResponseBody()) {
@@ -43,26 +52,29 @@ public class CardHandler implements HttpHandler {
                 }
             }
         } else if (exchange.getRequestMethod().equals("GET")) {
-            int accountId = Integer.parseInt(exchange
-                    .getRequestURI()
-                    .toString()
-                    .split("\\?")[1]
-                    .split("=")[1]);
-            List<CardResponse> cardList = cardService.linkCard(accountId);
-            ArrayNode array = objectMapper.valueToTree(cardList);
-            JsonNode result = objectMapper.createObjectNode().set("cards", array);
+            if (exchange.getRequestURI().getPath().equals("/card")) {
+                int accountId = Integer.parseInt(exchange
+                        .getRequestURI()
+                        .toString()
+                        .split("\\?")[1]
+                        .split("=")[1]);
+                List<CardResponse> cardList = cardService.linkCard(accountId);
+                String stringCard= objectMapper.writeValueAsString(cardList);
 
-            String stringResult = result.toString();
-
-            exchange.sendResponseHeaders(200, stringResult.length());
-            try (OutputStream outputStream = exchange.getResponseBody()) {
-                outputStream.write(stringResult.getBytes());
-            } catch (Exception e) {
+                exchange.sendResponseHeaders(200, stringCard.length());
                 try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(error.getBytes());
+                    outputStream.write(stringCard.getBytes());
+                } catch (Exception e) {
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(error.getBytes());
+                    }
+                }
+            } else {
+                exchange.sendResponseHeaders(200, errorGet.length());
+                try (OutputStream outputStream = exchange.getResponseBody()) {
+                    outputStream.write(errorGet.getBytes());
                 }
             }
-
         }
     }
 }

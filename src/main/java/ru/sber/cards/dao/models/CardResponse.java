@@ -1,5 +1,7 @@
 package ru.sber.cards.dao.models;
 
+import java.util.Objects;
+
 public class CardResponse {
     private int id;
 
@@ -27,5 +29,18 @@ public class CardResponse {
                 ", number='" + number + '\'' +
                 '}';
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CardResponse that = (CardResponse) o;
+        return id == that.id && Objects.equals(number, that.number);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, number);
     }
 }

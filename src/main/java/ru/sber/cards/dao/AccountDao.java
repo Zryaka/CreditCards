@@ -2,8 +2,9 @@ package ru.sber.cards.dao;
 
 import ru.sber.cards.dao.models.Account;
 import ru.sber.cards.dao.models.Transaction;
+import ru.sber.cards.utilities.CreateUserException;
 
-import java.sql.SQLException;
+import java.util.List;
 
 public interface AccountDao {
      /**
@@ -30,4 +31,8 @@ public interface AccountDao {
      * Сохранение операций перевода средств в бд
      */
     void saveTransaction(Transaction transaction);
+    /**
+     * Достает из базы данных список всех переводов пользователей
+     */
+    List<Transaction> getTransactoinFromBD();
 }

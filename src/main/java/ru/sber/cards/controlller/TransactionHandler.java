@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import ru.sber.cards.dao.models.CardResponse;
-import ru.sber.cards.dao.models.LoginRequest;
+import ru.sber.cards.dao.models.Transaction;
 import ru.sber.cards.dao.models.TransactionRequest;
 import ru.sber.cards.service.AccountService;
 
@@ -26,39 +25,52 @@ public class TransactionHandler implements HttpHandler {
 
     private final String success = "Transaction complete";
     private final String error = "Transaction failed";
+    private final String errorGet = "Get method not found for this context";
+    private final String errorPost = "POST method not found for this context";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (exchange.getRequestMethod().equals("POST")) {
             TransactionRequest transactionRequest = objectMapper.readValue(exchange.getRequestBody(),
                     TransactionRequest.class);
-            exchange.sendResponseHeaders(200, success.length());
-            try {
-                accountService.transactionToAccount(transactionRequest);
-                try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(success.getBytes());
+            if (exchange.getRequestURI().getPath().equals("/transaction")) {
+                try {
+                    exchange.sendResponseHeaders(200, success.length());
+                    accountService.transactionToAccount(transactionRequest);
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(success.getBytes());
+                    }
+                } catch (Exception e) {
+                    exchange.sendResponseHeaders(200, success.length());
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(error.getBytes());
+                    }
                 }
-            } catch (Exception e) {
+            } else {
+                exchange.sendResponseHeaders(200, errorPost.length());
                 try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(error.getBytes());
+                    outputStream.write(errorPost.getBytes());
                 }
             }
-/*        } else if (exchange.getRequestMethod().equals("GET")) {
-            List<> cardList =
-            ArrayNode array = objectMapper.valueToTree(cardList);
-            JsonNode result = objectMapper.createObjectNode().set("cards", array);
+        } else if (exchange.getRequestMethod().equals("GET")) {
+            if (exchange.getRequestURI().getPath().equals("/transaction")) {
+                List<Transaction> transactions = accountService.linkTransaction();
+                String stringTra = objectMapper.writeValueAsString(transactions);
 
-            String stringResult = result.toString();
-
-            exchange.sendResponseHeaders(200, stringResult.length());
-            try (OutputStream outputStream = exchange.getResponseBody()) {
-                outputStream.write(stringResult.getBytes());
-            } catch (Exception e) {
+                exchange.sendResponseHeaders(200, stringTra.length());
                 try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(error.getBytes());
+                    outputStream.write(stringTra.getBytes());
+                } catch (Exception e) {
+                    try (OutputStream outputStream = exchange.getResponseBody()) {
+                        outputStream.write(error.getBytes());
+                    }
                 }
-            }*/
-
+            } else {
+                exchange.sendResponseHeaders(200, errorGet.length());
+                try (OutputStream outputStream = exchange.getResponseBody()) {
+                    outputStream.write(errorGet.getBytes());
+                }
+            }
         }
     }
 }
