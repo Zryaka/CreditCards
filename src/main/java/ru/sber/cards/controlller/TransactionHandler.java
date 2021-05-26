@@ -1,8 +1,6 @@
 package ru.sber.cards.controlller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import ru.sber.cards.dao.models.Transaction;
@@ -27,6 +25,7 @@ public class TransactionHandler implements HttpHandler {
     private final String error = "Transaction failed";
     private final String errorGet = "Get method not found for this context";
     private final String errorPost = "POST method not found for this context";
+    private final String errorNotMethod = "Method not found";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -70,6 +69,11 @@ public class TransactionHandler implements HttpHandler {
                 try (OutputStream outputStream = exchange.getResponseBody()) {
                     outputStream.write(errorGet.getBytes());
                 }
+            }
+        }else{
+            exchange.sendResponseHeaders(200, errorNotMethod.length());
+            try (OutputStream outputStream = exchange.getResponseBody()) {
+                outputStream.write(errorNotMethod.getBytes());
             }
         }
     }

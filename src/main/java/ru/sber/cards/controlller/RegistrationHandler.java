@@ -24,6 +24,7 @@ public class RegistrationHandler implements HttpHandler {
     private final String error = "Error!";
     private final String errorGet = "Get method not found for this context";
     private final String errorPost = "POST method not found for this context";
+    private final String errorNotMethod = "Method not found";
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
@@ -53,6 +54,11 @@ public class RegistrationHandler implements HttpHandler {
             httpExchange.sendResponseHeaders(200, errorGet.length());
             try (OutputStream outputStream = httpExchange.getResponseBody()) {
                 outputStream.write(errorGet.getBytes());
+            }
+        } else {
+            httpExchange.sendResponseHeaders(200, errorNotMethod.length());
+            try (OutputStream outputStream = httpExchange.getResponseBody()) {
+                outputStream.write(errorNotMethod.getBytes());
             }
         }
     }

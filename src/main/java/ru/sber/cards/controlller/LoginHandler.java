@@ -23,6 +23,7 @@ public class LoginHandler implements HttpHandler {
     private final String error = "Not login!";
     private final String errorGet = "Get method not found for this context";
     private final String errorPost = "POST method not found for this context";
+    private final String errorNotMethod = "Method not found";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -52,6 +53,11 @@ public class LoginHandler implements HttpHandler {
             exchange.sendResponseHeaders(200, errorGet.length());
             try (OutputStream outputStream = exchange.getResponseBody()) {
                 outputStream.write(errorGet.getBytes());
+            }
+        }else {
+            exchange.sendResponseHeaders(200, errorNotMethod.length());
+            try (OutputStream outputStream = exchange.getResponseBody()) {
+                outputStream.write(errorNotMethod.getBytes());
             }
         }
     }

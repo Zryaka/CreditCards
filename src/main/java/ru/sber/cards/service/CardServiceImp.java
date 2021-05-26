@@ -4,9 +4,9 @@ import ru.sber.cards.dao.CardDao;
 import ru.sber.cards.dao.models.Card;
 import ru.sber.cards.dao.models.CardRequest;
 import ru.sber.cards.dao.models.CardResponse;
+import ru.sber.cards.utilities.CreateUserException;
 import ru.sber.cards.utilities.RandomCard;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class CardServiceImp implements CardService{
@@ -15,17 +15,16 @@ public class CardServiceImp implements CardService{
     public CardServiceImp(CardDao cardDao) {
         this.cardDao = cardDao;
     }
-    private final int balance = 0;
 
     @Override
-    public void createCard(CardRequest cardRequest) throws SQLException {
+    public void createCard(CardRequest cardRequest){
         if(cardDao.chekAccountCreate(cardRequest.getIdUser())) {
             Card card = new Card();
             card.setNumber(RandomCard.createNewCard());
             card.setUserId(cardRequest.getIdUser());
             cardDao.createNewCard(card);
         }else {
-            throw new SQLException("Счет не найден");
+            throw new CreateUserException("Счет не найден");
         }
     }
 

@@ -23,6 +23,7 @@ public class AccountHandler implements HttpHandler {
     private final String error = "Error account!";
     private final String errorGet = "Get method not found for this context";
     private final String errorPost = "POST method not found for this context";
+    private final String errorNotMethod = "Method not found";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -81,6 +82,12 @@ public class AccountHandler implements HttpHandler {
                     outputStream.write(errorGet.getBytes());
                 }
             }
+        } else {
+            exchange.sendResponseHeaders(200, errorNotMethod.length());
+            try (OutputStream outputStream = exchange.getResponseBody()) {
+                outputStream.write(errorNotMethod.getBytes());
+            }
         }
+
     }
 }

@@ -27,6 +27,7 @@ public class CardHandler implements HttpHandler {
     private final String error = "Card not created!";
     private final String errorGet = "Get method not found for this context";
     private final String errorPost = "POST method not found for this context";
+    private final String errorNotMethod = "Method not found";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -70,9 +71,9 @@ public class CardHandler implements HttpHandler {
                     }
                 }
             } else {
-                exchange.sendResponseHeaders(200, errorGet.length());
+                exchange.sendResponseHeaders(200, errorNotMethod.length());
                 try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(errorGet.getBytes());
+                    outputStream.write(errorNotMethod.getBytes());
                 }
             }
         }

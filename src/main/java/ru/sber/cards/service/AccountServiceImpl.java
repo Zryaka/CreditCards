@@ -6,6 +6,7 @@ import ru.sber.cards.dao.models.Account;
 import ru.sber.cards.dao.models.AccountRequest;
 import ru.sber.cards.dao.models.Transaction;
 import ru.sber.cards.dao.models.TransactionRequest;
+import ru.sber.cards.utilities.CreateUserException;
 import ru.sber.cards.utilities.RandomAccount;
 
 import java.sql.SQLException;
@@ -31,6 +32,8 @@ public class AccountServiceImpl implements AccountService {
             account.setUserID(accountRequest.getUserIdRequest());
             account.setBalance(balance);
             accountDao.saveAccount(account);
+        }else {
+            throw new CreateUserException("Пользователь не зарегитрирован");
         }
     }
 
